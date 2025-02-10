@@ -1,19 +1,29 @@
 <div class="container-base">
   <h2>Lista de Pokémon</h2>
-   <!-- HEADER -->
-   <header class="pokemon-header">
-    <!-- Aqui ficarão os selects futuramente -->
-    <p>Filtre seus Pokémon favoritos!</p>
+
+  <!-- HEADER COM SELECT PARA FILTRAR -->
+  <header class="pokemon-header">
+    <label for="typeFilter">Filtrar por tipo: </label>
+    <!-- Usando variável de referência para evitar problemas com type assertions -->
+    <select id="typeFilter" #typeFilter (change)="filterByType(typeFilter.value)" class="custom-select">
+      <option value="">All</option>
+      <option *ngFor="let type of pokemonTypes" [value]="type">
+        {{ type | titlecase }}
+      </option>
+    </select>
+
   </header>
+
   <div class="pokemon-container">
-    <div class="pokemon-card" *ngFor="let pokemon of pokemons" [ngStyle]="{'background-color': getTypeColor(pokemon.types)}">
+    <!-- Itera sobre a lista filtrada -->
+    <div class="pokemon-card" *ngFor="let pokemon of filteredPokemons" [ngStyle]="{'background-color': getTypeColor(pokemon.types)}">
       <img [src]="pokemon.image" [alt]="pokemon.name" />
       <p>{{ pokemon.name | titlecase }}</p>
     </div>
   </div>
 
-  <!-- Controles de Paginação -->
-  <div class="pagination">
+  <!-- Controles de Paginação (exibidos somente quando nenhum filtro estiver ativo) -->
+  <div class="pagination" *ngIf="!typeFilter.value">
     <button (click)="prevPage()" [disabled]="offset === 0">⬅️ Anterior</button>
     <button (click)="nextPage()">Próximo ➡️</button>
   </div>

@@ -10,60 +10,71 @@ import { PokeapiService } from '../../services/pokeapi.service';
   styleUrls: ['./pokemon-list.component.css'],
 })
 export class PokemonListComponent implements OnInit {
-  pokemons: any[] = [];
+  // Lista que será exibida (filtrada ou paginada)
+  filteredPokemons: any[] = [];
+  // Guarda a lista da página quando nenhum filtro estiver ativo
+  paginatedPokemons: any[] = [];
   limit: number = 20;
   offset: number = 0;
 
-  // Mapeamento de tipos de Pokémon para cores pastel
+  // Lista de tipos para o select
+  pokemonTypes: string[] = [
+    'fire', 'water', 'grass', 'electric', 'ice', 'fighting', 'poison', 'ground',
+    'flying', 'psychic', 'bug', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
+  ];
+
+  // Mapeamento de cores para os tipos
   typeColors: { [key: string]: string } = {
-    fire: '#FF9A8B',    // Fogo - Laranja pastel
-    water: '#A1C4D7',   // Água - Azul pastel
-    grass: '#B0E57C',   // Planta - Verde pastel
-    electric: '#F2E03B', // Elétrico - Amarelo pastel
-    ice: '#AEE2F0',     // Gelo - Azul claro pastel
-    fighting: '#F5B7B1', // Lutador - Rosa claro pastel
-    poison: '#D6A5D6',  // Veneno - Roxo pastel
-    ground: '#F4A300',  // Terrestre - Amarelo queimado
-    flying: '#A0C4FF',  // Voador - Azul claro pastel
-    psychic: '#D4A5A5', // Psíquico - Rosa claro pastel
-    bug: '#C2D9B4',     // Inseto - Verde suave
-    ghost: '#C6A9D6',   // Fantasma - Lilás pastel
-    dragon: '#FFADAD',  // Dragão - Vermelho claro pastel
-    dark: '#6A4C4C',    // Sombrio - Marrom claro
-    steel: '#A3B1C6',   // Metálico - Cinza claro
-    fairy: '#F2C1D1'    // Fada - Rosa claro pastel
+    fire: '#FF9A8B',
+    water: '#A1C4D7',
+    grass: '#B0E57C',
+    electric: '#F2E03B',
+    ice: '#AEE2F0',
+    fighting: '#F5B7B1',
+    poison: '#D6A5D6',
+    ground: '#F4A300',
+    flying: '#A0C4FF',
+    psychic: '#D4A5A5',
+    bug: '#C2D9B4',
+    ghost: '#C6A9D6',
+    dragon: '#FFADAD',
+    dark: '#6A4C4C',
+    steel: '#A3B1C6',
+    fairy: '#F2C1D1'
   };
 
   constructor(private pokeapiService: PokeapiService) {}
 
   ngOnInit(): void {
-    this.loadPokemons();
+    this.loadPaginatedPokemons();
   }
 
-  loadPokemons(): void {
+  // Carrega a página padrão de Pokémon
+  loadPaginatedPokemons(): void {
     this.pokeapiService.getPokemons(this.limit, this.offset).subscribe((pokemons) => {
-      this.pokemons = pokemons;
+      this.paginatedPokemons = pokemons;
+      // Se nenhum filtro estiver ativo, exibimos os dados paginados
+      this.filteredPokemons = pokemons;
     });
   }
 
   nextPage(): void {
-    this.offset += this.limit; // Avança para a próxima página
-    this.loadPokemons();
+    this.offset += this.limit;
+    this.loadPaginatedPokemons();
   }
 
   prevPage(): void {
     if (this.offset > 0) {
-      this.offset -= this.limit; // Volta para a página anterior
-      this.loadPokemons();
+      this.offset -= this.limit;
+      this.loadPaginatedPokemons();
     }
   }
 
-  // Função para pegar a cor correspondente ao tipo do Pokémon
+  // Retorna a cor com base no primeiro tipo do Pokémon
   getTypeColor(types: string[]): string {
     if (!types || types.length === 0) {
-      return '#FFF'; // Branco padrão se não houver tipos
+      return '#FFF';
     }
-    // Retorna a cor do primeiro tipo encontrado que tenha mapeamento
     for (let type of types) {
       if (this.typeColors[type]) {
         return this.typeColors[type];
@@ -72,4 +83,15 @@ export class PokemonListComponent implements OnInit {
     return '#FFF';
   }
 
+  // Filtra os Pokémon com base no tipo selecionado
+  // Se nenhum tipo for selecionado, volta para a lista paginada
+  filterByType(selectedType: string): void {
+    if (!selectedType) {
+      this.loadPaginatedPokemons();
+    } else {
+      this.pokeapiService.getPokemonsByType(selectedType).subscribe((pokemons) => {
+        this.filteredPokemons = pokemons;
+      });
+    }
+  }
 }
