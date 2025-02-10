@@ -1,0 +1,15 @@
+<div class="container-base">
+  <h2>Lista de Pokémon</h2>
+  <div class="pokemon-container">
+    <div class="pokemon-card" *ngFor="let pokemon of pokemons" [ngStyle]="{'background-color': getTypeColor(pokemon.types)}">
+      <img [src]="pokemon.image" [alt]="pokemon.name" />
+      <p>{{ pokemon.name | titlecase }}</p>
+    </div>
+  </div>
+
+  <!-- Controles de Paginação -->
+  <div class="pagination">
+    <button (click)="prevPage()" [disabled]="offset === 0">⬅️ Anterior</button>
+    <button (click)="nextPage()">Próximo ➡️</button>
+  </div>
+</div>
