@@ -1,5 +1,10 @@
 <div class="container-base">
   <h2>Lista de Pokémon</h2>
+   <!-- HEADER -->
+   <header class="pokemon-header">
+    <!-- Aqui ficarão os selects futuramente -->
+    <p>Filtre seus Pokémon favoritos!</p>
+  </header>
   <div class="pokemon-container">
     <div class="pokemon-card" *ngFor="let pokemon of pokemons" [ngStyle]="{'background-color': getTypeColor(pokemon.types)}">
       <img [src]="pokemon.image" [alt]="pokemon.name" />
