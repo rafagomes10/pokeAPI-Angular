@@ -79,7 +79,7 @@
   padding: 5px 10px;
   font-size: 16px;
   cursor: pointer;
-  width: 120px; /* Largura fixa, ajuste conforme necessário */
+  width: 180px; /* Largura fixa, ajuste conforme necessário */
   text-align: center;
 
   /* Remove a aparência padrão para possibilitar a customização */
@@ -102,4 +102,10 @@
 /* Opcional: estiliza as opções do select para melhor legibilidade */
 .custom-select option {
   color: #000;
+}
+
+.filter-group {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
 }

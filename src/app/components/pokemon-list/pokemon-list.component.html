@@ -6,7 +6,7 @@
     <div class="filter-group">
       <!-- Filtro por Tipo -->
       <div class="filter-item">
-        <label for="typeFilter">Filtrar por tipo:</label>
+        <label for="typeFilter">Filtrar por tipo: </label>
         <select id="typeFilter" #typeFilter (change)="filterByType(typeFilter.value)" class="custom-select">
           <option value="">All</option>
           <option *ngFor="let type of pokemonTypes" [value]="type">
@@ -17,7 +17,7 @@
 
       <!-- Filtro por Geração -->
       <div class="filter-item">
-        <label for="generationFilter">Filtrar por geração:</label>
+        <label for="generationFilter">Filtrar por geração: </label>
         <select id="generationFilter" #generationFilter (change)="filterByGeneration(generationFilter.value)"
           class="custom-select">
           <option value="">All</option>
