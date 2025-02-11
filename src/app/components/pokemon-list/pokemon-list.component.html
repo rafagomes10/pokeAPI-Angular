@@ -1,29 +1,45 @@
 <div class="container-base">
   <h2>Lista de Pokémon</h2>
 
-  <!-- HEADER COM SELECT PARA FILTRAR -->
+  <!-- HEADER COM OS FILTROS -->
   <header class="pokemon-header">
-    <label for="typeFilter">Filtrar por tipo: </label>
-    <!-- Usando variável de referência para evitar problemas com type assertions -->
-    <select id="typeFilter" #typeFilter (change)="filterByType(typeFilter.value)" class="custom-select">
-      <option value="">All</option>
-      <option *ngFor="let type of pokemonTypes" [value]="type">
-        {{ type | titlecase }}
-      </option>
-    </select>
+    <div class="filter-group">
+      <!-- Filtro por Tipo -->
+      <div class="filter-item">
+        <label for="typeFilter">Filtrar por tipo:</label>
+        <select id="typeFilter" #typeFilter (change)="filterByType(typeFilter.value)" class="custom-select">
+          <option value="">All</option>
+          <option *ngFor="let type of pokemonTypes" [value]="type">
+            {{ type | titlecase }}
+          </option>
+        </select>
+      </div>
 
+      <!-- Filtro por Geração -->
+      <div class="filter-item">
+        <label for="generationFilter">Filtrar por geração:</label>
+        <select id="generationFilter" #generationFilter (change)="filterByGeneration(generationFilter.value)"
+          class="custom-select">
+          <option value="">All</option>
+          <option *ngFor="let gen of pokemonGenerations" [value]="gen">
+            {{ gen | titlecase }}
+          </option>
+        </select>
+      </div>
+    </div>
   </header>
 
+  <!-- Exibição dos Pokémon -->
   <div class="pokemon-container">
-    <!-- Itera sobre a lista filtrada -->
-    <div class="pokemon-card" *ngFor="let pokemon of filteredPokemons" [ngStyle]="{'background-color': getTypeColor(pokemon.types)}">
+    <div class="pokemon-card" *ngFor="let pokemon of filteredPokemons"
+      [ngStyle]="{'background-color': getTypeColor(pokemon.types)}">
       <img [src]="pokemon.image" [alt]="pokemon.name" />
       <p>{{ pokemon.name | titlecase }}</p>
     </div>
   </div>
 
-  <!-- Controles de Paginação (exibidos somente quando nenhum filtro estiver ativo) -->
-  <div class="pagination" *ngIf="!typeFilter.value">
+  <!-- Controles de Paginação (apenas quando nenhum filtro estiver ativo) -->
+  <div class="pagination" *ngIf="!typeFilter.value && !generationFilter.value">
     <button (click)="prevPage()" [disabled]="offset === 0">⬅️ Anterior</button>
     <button (click)="nextPage()">Próximo ➡️</button>
   </div>

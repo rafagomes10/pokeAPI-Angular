@@ -10,20 +10,26 @@ import { PokeapiService } from '../../services/pokeapi.service';
   styleUrls: ['./pokemon-list.component.css'],
 })
 export class PokemonListComponent implements OnInit {
-  // Lista que será exibida (filtrada ou paginada)
+  // Para exibição (modo filtrado ou paginado)
   filteredPokemons: any[] = [];
-  // Guarda a lista da página quando nenhum filtro estiver ativo
+  // Para paginação (lista padrão)
   paginatedPokemons: any[] = [];
   limit: number = 20;
   offset: number = 0;
 
-  // Lista de tipos para o select
+  // Lista de tipos disponíveis
   pokemonTypes: string[] = [
     'fire', 'water', 'grass', 'electric', 'ice', 'fighting', 'poison', 'ground',
     'flying', 'psychic', 'bug', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
   ];
 
-  // Mapeamento de cores para os tipos
+  // Lista de gerações disponíveis (conforme a PokeAPI)
+  pokemonGenerations: string[] = [
+    'generation-i', 'generation-ii', 'generation-iii', 'generation-iv',
+    'generation-v', 'generation-vi', 'generation-vii', 'generation-viii'
+  ];
+
+  // Mapeamento de tipos para cores pastel
   typeColors: { [key: string]: string } = {
     fire: '#FF9A8B',
     water: '#A1C4D7',
@@ -43,17 +49,16 @@ export class PokemonListComponent implements OnInit {
     fairy: '#F2C1D1'
   };
 
-  constructor(private pokeapiService: PokeapiService) {}
+  constructor(private pokeapiService: PokeapiService) { }
 
   ngOnInit(): void {
     this.loadPaginatedPokemons();
   }
 
-  // Carrega a página padrão de Pokémon
+  // Carrega a página padrão (modo sem filtro)
   loadPaginatedPokemons(): void {
     this.pokeapiService.getPokemons(this.limit, this.offset).subscribe((pokemons) => {
       this.paginatedPokemons = pokemons;
-      // Se nenhum filtro estiver ativo, exibimos os dados paginados
       this.filteredPokemons = pokemons;
     });
   }
@@ -83,13 +88,25 @@ export class PokemonListComponent implements OnInit {
     return '#FFF';
   }
 
-  // Filtra os Pokémon com base no tipo selecionado
-  // Se nenhum tipo for selecionado, volta para a lista paginada
+  // Filtro por tipo (utiliza o método existente)
   filterByType(selectedType: string): void {
     if (!selectedType) {
+      // Se nenhum tipo for selecionado, volta para a lista padrão paginada
       this.loadPaginatedPokemons();
     } else {
       this.pokeapiService.getPokemonsByType(selectedType).subscribe((pokemons) => {
+        this.filteredPokemons = pokemons;
+      });
+    }
+  }
+
+  // Filtro por geração (utiliza um novo método do serviço)
+  filterByGeneration(selectedGeneration: string): void {
+    if (!selectedGeneration) {
+      // Se nenhum filtro de geração for selecionado, volta para a lista padrão paginada
+      this.loadPaginatedPokemons();
+    } else {
+      this.pokeapiService.getPokemonsByGeneration(selectedGeneration).subscribe((pokemons) => {
         this.filteredPokemons = pokemons;
       });
     }
