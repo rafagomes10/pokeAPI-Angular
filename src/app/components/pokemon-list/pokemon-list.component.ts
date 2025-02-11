@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { PokeapiService } from '../../services/pokeapi.service';
 
 @Component({
@@ -10,20 +11,24 @@ import { PokeapiService } from '../../services/pokeapi.service';
   styleUrls: ['./pokemon-list.component.css'],
 })
 export class PokemonListComponent implements OnInit {
-  // Para exibição (modo filtrado ou paginado)
+  // Lista que será exibida (filtrada ou paginada)
   filteredPokemons: any[] = [];
-  // Para paginação (lista padrão)
+  // Lista para o modo paginado (quando nenhum filtro está ativo)
   paginatedPokemons: any[] = [];
   limit: number = 20;
   offset: number = 0;
 
-  // Lista de tipos disponíveis
+  // Valores dos filtros selecionados
+  selectedType: string = "";
+  selectedGeneration: string = "";
+
+  // Lista de tipos para o select
   pokemonTypes: string[] = [
     'fire', 'water', 'grass', 'electric', 'ice', 'fighting', 'poison', 'ground',
     'flying', 'psychic', 'bug', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
   ];
 
-  // Lista de gerações disponíveis (conforme a PokeAPI)
+  // Lista de gerações para o select (conforme a PokeAPI)
   pokemonGenerations: string[] = [
     'generation-i', 'generation-ii', 'generation-iii', 'generation-iv',
     'generation-v', 'generation-vi', 'generation-vii', 'generation-viii'
@@ -60,6 +65,9 @@ export class PokemonListComponent implements OnInit {
     this.pokeapiService.getPokemons(this.limit, this.offset).subscribe((pokemons) => {
       this.paginatedPokemons = pokemons;
       this.filteredPokemons = pokemons;
+      // Limpa os filtros selecionados
+      this.selectedType = "";
+      this.selectedGeneration = "";
     });
   }
 
@@ -88,26 +96,44 @@ export class PokemonListComponent implements OnInit {
     return '#FFF';
   }
 
-  // Filtro por tipo (utiliza o método existente)
+  // Atualiza o filtro de tipo e aplica os filtros
   filterByType(selectedType: string): void {
-    if (!selectedType) {
-      // Se nenhum tipo for selecionado, volta para a lista padrão paginada
-      this.loadPaginatedPokemons();
-    } else {
-      this.pokeapiService.getPokemonsByType(selectedType).subscribe((pokemons) => {
-        this.filteredPokemons = pokemons;
-      });
-    }
+    this.selectedType = selectedType;
+    this.applyFilters();
   }
 
-  // Filtro por geração (utiliza um novo método do serviço)
+  // Atualiza o filtro de geração e aplica os filtros
   filterByGeneration(selectedGeneration: string): void {
-    if (!selectedGeneration) {
-      // Se nenhum filtro de geração for selecionado, volta para a lista padrão paginada
+    this.selectedGeneration = selectedGeneration;
+    this.applyFilters();
+  }
+
+  // Aplica os filtros (tipo e geração) combinados
+  applyFilters(): void {
+    if (!this.selectedType && !this.selectedGeneration) {
+      // Sem filtros, carrega a lista paginada
       this.loadPaginatedPokemons();
-    } else {
-      this.pokeapiService.getPokemonsByGeneration(selectedGeneration).subscribe((pokemons) => {
+    } else if (this.selectedType && !this.selectedGeneration) {
+      // Apenas filtro de tipo
+      this.pokeapiService.getPokemonsByType(this.selectedType).subscribe((pokemons) => {
         this.filteredPokemons = pokemons;
+      });
+    } else if (!this.selectedType && this.selectedGeneration) {
+      // Apenas filtro de geração
+      this.pokeapiService.getPokemonsByGeneration(this.selectedGeneration).subscribe((pokemons) => {
+        this.filteredPokemons = pokemons;
+      });
+    } else if (this.selectedType && this.selectedGeneration) {
+      // Ambos os filtros aplicados: faz a interseção dos resultados
+      forkJoin([
+        this.pokeapiService.getPokemonsByType(this.selectedType),
+        this.pokeapiService.getPokemonsByGeneration(this.selectedGeneration)
+      ]).subscribe(([pokemonsByType, pokemonsByGen]) => {
+        // Realiza a interseção comparando pelo nome
+        const intersection = pokemonsByType.filter(pokemon =>
+          pokemonsByGen.some(p => p.name === pokemon.name)
+        );
+        this.filteredPokemons = intersection;
       });
     }
   }
