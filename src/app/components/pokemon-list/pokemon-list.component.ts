@@ -65,6 +65,7 @@ export class PokemonListComponent implements OnInit {
     this.pokeapiService.getPokemons(this.limit, this.offset).subscribe((pokemons) => {
       this.paginatedPokemons = pokemons;
       this.filteredPokemons = pokemons;
+
       // Limpa os filtros selecionados
       this.selectedType = "";
       this.selectedGeneration = "";
