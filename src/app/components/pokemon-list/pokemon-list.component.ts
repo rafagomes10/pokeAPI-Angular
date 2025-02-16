@@ -1,40 +1,39 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { forkJoin, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PokeapiService } from '../../services/pokeapi.service';
 
 @Component({
   selector: 'app-pokemon-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './pokemon-list.component.html',
   styleUrls: ['./pokemon-list.component.css'],
 })
-export class PokemonListComponent implements OnInit {
-  // Lista que será exibida (filtrada ou paginada)
+export class PokemonListComponent implements OnInit, OnDestroy {
+  private searchSubject = new Subject<string>();
+  searchTerm: string = '';
+
   filteredPokemons: any[] = [];
-  // Lista para o modo paginado (quando nenhum filtro está ativo)
   paginatedPokemons: any[] = [];
   limit: number = 20;
   offset: number = 0;
 
-  // Valores dos filtros selecionados
   selectedType: string = "";
   selectedGeneration: string = "";
 
-  // Lista de tipos para o select
   pokemonTypes: string[] = [
     'fire', 'water', 'grass', 'electric', 'ice', 'fighting', 'poison', 'ground',
     'flying', 'psychic', 'bug', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
   ];
 
-  // Lista de gerações para o select (conforme a PokeAPI)
   pokemonGenerations: string[] = [
     'generation-i', 'generation-ii', 'generation-iii', 'generation-iv',
     'generation-v', 'generation-vi', 'generation-vii', 'generation-viii'
   ];
 
-  // Mapeamento de tipos para cores pastel
   typeColors: { [key: string]: string } = {
     fire: '#FF9A8B',
     water: '#A1C4D7',
@@ -58,6 +57,36 @@ export class PokemonListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPaginatedPokemons();
+    this.setupSearch();
+  }
+
+  private setupSearch(): void {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      this.performSearch(term);
+    });
+  }
+
+  searchPokemon(term: string): void {
+    this.searchSubject.next(term);
+  }
+
+  private performSearch(term: string): void {
+    if (!term || !term.trim()) {
+      this.applyFilters();
+      return;
+    }
+
+    this.pokeapiService.searchPokemonByName(term.trim().toLowerCase()).subscribe({
+      next: (pokemons) => {
+        this.filteredPokemons = pokemons;
+      },
+      error: () => {
+        this.filteredPokemons = [];
+      }
+    });
   }
 
   // Carrega a página padrão (modo sem filtro)
@@ -112,30 +141,29 @@ export class PokemonListComponent implements OnInit {
   // Aplica os filtros (tipo e geração) combinados
   applyFilters(): void {
     if (!this.selectedType && !this.selectedGeneration) {
-      // Sem filtros, carrega a lista paginada
       this.loadPaginatedPokemons();
     } else if (this.selectedType && !this.selectedGeneration) {
-      // Apenas filtro de tipo
       this.pokeapiService.getPokemonsByType(this.selectedType).subscribe((pokemons) => {
         this.filteredPokemons = pokemons;
       });
     } else if (!this.selectedType && this.selectedGeneration) {
-      // Apenas filtro de geração
       this.pokeapiService.getPokemonsByGeneration(this.selectedGeneration).subscribe((pokemons) => {
         this.filteredPokemons = pokemons;
       });
     } else if (this.selectedType && this.selectedGeneration) {
-      // Ambos os filtros aplicados: faz a interseção dos resultados
       forkJoin([
         this.pokeapiService.getPokemonsByType(this.selectedType),
         this.pokeapiService.getPokemonsByGeneration(this.selectedGeneration)
       ]).subscribe(([pokemonsByType, pokemonsByGen]) => {
-        // Realiza a interseção comparando pelo nome
         const intersection = pokemonsByType.filter(pokemon =>
-          pokemonsByGen.some(p => p.name === pokemon.name)
+          pokemonsByGen.some(p => p.name === pokemon.name) || !pokemonsByGen.length
         );
         this.filteredPokemons = intersection;
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.searchSubject.complete();
   }
 }

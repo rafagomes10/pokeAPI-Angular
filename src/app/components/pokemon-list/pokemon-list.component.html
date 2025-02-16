@@ -4,6 +4,18 @@
   <!-- HEADER COM OS FILTROS -->
   <header class="pokemon-header">
     <div class="filter-group">
+      <!-- Busca por Nome -->
+      <div class="filter-item">
+        <label for="searchInput">Buscar Pokémon: </label>
+        <input
+          id="searchInput"
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="searchPokemon(searchTerm)"
+          placeholder="Digite o nome do Pokémon"
+        />
+      </div>
+
       <!-- Filtro por Tipo -->
       <div class="filter-item">
         <label for="typeFilter">Filtrar por tipo: </label>

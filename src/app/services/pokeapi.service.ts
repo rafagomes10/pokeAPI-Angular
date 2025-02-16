@@ -3,6 +3,12 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 
+interface Pokemon {
+  name: string;
+  image: string;
+  types: string[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -61,11 +67,9 @@ export class PokeapiService {
   getPokemonsByGeneration(generation: string): Observable<any[]> {
     return this.http.get<any>(`https://pokeapi.co/api/v2/generation/${generation}`).pipe(
       mergeMap(response => {
-        // response.pokemon_species é um array de espécies, cada uma com { name, url }
         const requests = response.pokemon_species.map((species: any) => {
-          const speciesUrl = species.url; // Exemplo: "https://pokeapi.co/api/v2/pokemon-species/1/"
-          const id = speciesUrl.split('/').filter(Boolean).pop(); // Extrai o ID (por exemplo, "1")
-          // Gera a URL dos detalhes do Pokémon
+          const speciesUrl = species.url;
+          const id = speciesUrl.split('/').filter(Boolean).pop();
           const pokemonUrl = `https://pokeapi.co/api/v2/pokemon/${id}/`;
           return this.http.get<any>(pokemonUrl).pipe(
             map(detail => {
@@ -79,6 +83,35 @@ export class PokeapiService {
           );
         });
         return forkJoin(requests) as Observable<any[]>;
+      }),
+      map(pokemons => {
+        // Include Pokémon even if they are not in any generation
+        return pokemons.filter(pokemon => pokemon.name);
+      })
+    );
+  }
+
+  searchPokemonByName(searchTerm: string): Observable<Pokemon[]> {
+    return this.http.get<any>(`${this.apiUrl}?limit=5000`).pipe(
+      mergeMap(response => {
+        const requests = response.results.map((pokemon: any) =>
+          this.http.get<any>(pokemon.url).pipe(
+            map(detail => {
+              const id = pokemon.url.split('/').filter(Boolean).pop();
+              const types = detail.types.map((t: any) => t.type.name);
+              return {
+                name: pokemon.name,
+                image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`,
+                types: types
+              } as Pokemon; // Ensure the returned object matches the Pokemon interface
+            })
+          )
+        );
+        return forkJoin(requests).pipe(
+          map((pokemons: any) => pokemons.filter((pokemon: Pokemon) =>
+            pokemon.name.toLowerCase().includes(searchTerm.toLowerCase())
+          ))
+        );
       })
     );
   }
