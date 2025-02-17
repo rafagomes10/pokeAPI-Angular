@@ -5,22 +5,29 @@
   <header class="pokemon-header">
     <div class="filter-group">
       <!-- Busca por Nome -->
-      <div class="filter-item" style="display: flex; align-items: center;">
-        <label for="searchInput" style="margin-right: 5px;">Buscar Pokémon:</label>
+      <div class="filter-item" style="display: flex; align-items: center">
+        <label for="searchInput" style="margin-right: 5px"
+          >Buscar Pokémon:</label
+        >
         <input
           id="searchInput"
           type="text"
           [(ngModel)]="searchTerm"
           (input)="searchPokemon(searchTerm)"
           placeholder="Digite o nome"
-          style="border-radius: 5px;"
+          style="border-radius: 5px"
         />
       </div>
 
       <!-- Filtro por Tipo -->
       <div class="filter-item">
         <label for="typeFilter">Filtrar por tipo: </label>
-        <select id="typeFilter" #typeFilter (change)="filterByType(typeFilter.value)" class="custom-select">
+        <select
+          id="typeFilter"
+          #typeFilter
+          (change)="filterByType(typeFilter.value)"
+          class="custom-select"
+        >
           <option value="">All</option>
           <option *ngFor="let type of pokemonTypes" [value]="type">
             {{ type | titlecase }}
@@ -31,8 +38,12 @@
       <!-- Filtro por Geração -->
       <div class="filter-item">
         <label for="generationFilter">Filtrar por geração: </label>
-        <select id="generationFilter" #generationFilter (change)="filterByGeneration(generationFilter.value)"
-          class="custom-select">
+        <select
+          id="generationFilter"
+          #generationFilter
+          (change)="filterByGeneration(generationFilter.value)"
+          class="custom-select"
+        >
           <option value="">All</option>
           <option *ngFor="let gen of pokemonGenerations" [value]="gen">
             {{ gen | titlecase }}
@@ -44,16 +55,44 @@
 
   <!-- Exibição dos Pokémon -->
   <div class="pokemon-container">
-    <div class="pokemon-card" *ngFor="let pokemon of filteredPokemons"
-      [ngStyle]="{'background-color': getTypeColor(pokemon.types)}">
+    <div
+      class="pokemon-card"
+      *ngFor="let pokemon of filteredPokemons"
+      [ngStyle]="{ 'background-color': getTypeColor(pokemon.types) }"
+      (click)="showPokemonDetails(pokemon)"
+    >
       <img [src]="pokemon.image" [alt]="pokemon.name" />
       <p>{{ pokemon.name | titlecase }}</p>
     </div>
   </div>
 
-  <!-- Controles de Paginação (apenas quando nenhum filtro estiver ativo) -->
-  <div class="pagination" *ngIf="!typeFilter.value && !generationFilter.value">
+  <!-- Controles de Paginação -->
+  <div class="pagination" *ngIf="!selectedType && !selectedGeneration">
     <button (click)="prevPage()" [disabled]="offset === 0">⬅️ Anterior</button>
     <button (click)="nextPage()">Próximo ➡️</button>
+  </div>
+
+  <!-- Modal de Detalhes do Pokémon -->
+  <div class="modal" *ngIf="selectedPokemon" (click)="closeDetails()">
+    <div
+      class="modal-content"
+      [ngStyle]="{ 'background-color': getTypeColor(selectedPokemon.types) }"
+      (click)="$event.stopPropagation()"
+    >
+      <span class="close" (click)="closeDetails()">&times;</span>
+      <h3>{{ selectedPokemon.name | titlecase }}</h3>
+      <img [src]="selectedPokemon.image" [alt]="selectedPokemon.name" />
+      <p>Tipos: {{ selectedPokemon.types.join(", ") }}</p>
+      <p>Altura: {{ selectedPokemon.height }} decímetros</p>
+      <p>Peso: {{ selectedPokemon.weight }} hectogramas</p>
+      <p>Experiência Base: {{ selectedPokemon.base_experience }}</p>
+      <p>Habilidades: {{ selectedPokemon.abilities?.join(", ") }}</p>
+      <p>Estatísticas:</p>
+      <ul>
+        <li *ngFor="let stat of selectedPokemon.stats">
+          {{ stat.stat.name | titlecase }}: {{ stat.base_stat }}
+        </li>
+      </ul>
+    </div>
   </div>
 </div>

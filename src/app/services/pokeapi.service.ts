@@ -115,4 +115,20 @@ export class PokeapiService {
       })
     );
   }
+
+  getPokemonDetails(name: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${name}`).pipe(
+      map(details => ({
+        ...details,
+        name: details.name,
+        image: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${details.id}.png`,
+        types: details.types.map((t: any) => t.type.name),
+        abilities: details.abilities.map((a: any) => a.ability.name),
+        height: details.height,
+        weight: details.weight,
+        base_experience: details.base_experience,
+        stats: details.stats
+      }))
+    );
+  }
 }

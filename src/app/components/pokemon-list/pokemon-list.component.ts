@@ -12,7 +12,7 @@ import { PokeapiService } from '../../services/pokeapi.service';
   templateUrl: './pokemon-list.component.html',
   styleUrls: ['./pokemon-list.component.css'],
 })
-export class PokemonListComponent implements OnInit, OnDestroy {
+export class PokemonListComponent implements OnInit {
   private searchSubject = new Subject<string>();
   searchTerm: string = '';
 
@@ -52,6 +52,8 @@ export class PokemonListComponent implements OnInit, OnDestroy {
     steel: '#A3B1C6',
     fairy: '#F2C1D1'
   };
+
+  selectedPokemon: any = null;
 
   constructor(private pokeapiService: PokeapiService) { }
 
@@ -161,6 +163,16 @@ export class PokemonListComponent implements OnInit, OnDestroy {
         this.filteredPokemons = intersection;
       });
     }
+  }
+
+  showPokemonDetails(pokemon: any): void {
+    this.pokeapiService.getPokemonDetails(pokemon.name).subscribe(details => {
+      this.selectedPokemon = details;
+    });
+  }
+
+  closeDetails(): void {
+    this.selectedPokemon = null;
   }
 
   ngOnDestroy(): void {
